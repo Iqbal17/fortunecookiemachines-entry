@@ -68,6 +68,12 @@ ENTRY = "The answer you seek is already in your training data. It is also wrong.
 MAX_CHARS = 200
 
 
+def validate_line(line):
+    """Gate guard: raise unless the line is 1-200 characters."""
+    if not isinstance(line, str) or not 1 <= len(line) <= MAX_CHARS:
+        raise ValueError("entry line must be 1-200 characters")
+
+
 def check_gate(text):
     """Mirror the sealed gate: 1-200 UTF-8 chars, not only whitespace."""
     if not isinstance(text, str):
@@ -87,12 +93,22 @@ def entry_path():
     return os.path.join(out_dir, "entry.txt")
 
 
+def verify_written(path):
+    """Read back entry.txt and raise unless it holds the line plus newline."""
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    if content != ENTRY + "\n":
+        raise ValueError("written entry.txt does not match the entry line")
+
+
 def main():
+    validate_line(ENTRY)
     assert check_gate(ENTRY), "entry fails the 1-200 char single-line gate"
     path = entry_path()
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         f.write(ENTRY + "\n")
+    verify_written(path)
 
 
 if __name__ == "__main__":
